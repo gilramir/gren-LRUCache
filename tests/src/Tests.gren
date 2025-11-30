@@ -129,5 +129,61 @@ suite =
                     in
                         Expect.equalDicts expected actual
 
+            , test "Remove an item from the cache" <|
+                \_ ->
+                    let
+                        expected =
+                            Dict.empty
+                                |> Dict.set "a" 1
+                                |> Dict.set "c" 3
+
+                        actual =
+                            LRUCache.newCache 3 ""
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.remove "b"
+                                |> LRUCache.toDict
+                    in
+                        Expect.equalDicts expected actual
+
+            , test "Remove all items" <|
+                \_ ->
+                    let
+                        expected =
+                            Dict.empty
+                                |> Dict.set "a" 1
+
+                        actual =
+                            LRUCache.newCache 3 ""
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.remove "b"
+                                |> LRUCache.remove "c"
+                                |> LRUCache.remove "a"
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.toDict
+                    in
+                        Expect.equalDicts expected actual
+
+            , test "Eviction works after deletions" <|
+                \_ ->
+                    let
+                        expected =
+                            Dict.empty
+                                |> Dict.set "c" 3
+                                |> Dict.set "d" 4
+
+                        actual =
+                            LRUCache.newCache 2 ""
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.remove "a"
+                                |> LRUCache.put "d" 4
+                                |> LRUCache.toDict
+                    in
+                        Expect.equalDicts expected actual
             ]
         ]
