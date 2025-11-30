@@ -4,14 +4,15 @@ import Expect exposing (Expectation)
 import Test exposing (..)
 import Dict
 
-import LRUCache exposing (Cache)
+
+import LRUCache
 
 
 suite : Test
 suite =
     describe "Cache tests"
         [ describe "Basics"
-            -- Nest as many descriptions as you like.
+
             [ test "Putting and eviction works" <|
                 \_ ->
                     let
@@ -32,5 +33,101 @@ suite =
                                 |> LRUCache.toDict
                     in
                         Expect.equalDicts expected actual
+
+            , test "Getting works" <|
+                \_ ->
+                    let
+                        expected =
+                            Just 2
+
+                        { cache = _, value = actual } =
+                            LRUCache.newCache 4 ""
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.put "d" 4
+                                |> LRUCache.put "e" 5
+                                |> LRUCache.get "b"
+                    in
+                        Expect.equal expected actual
+
+            , test "Getting Nothing when key has been evicted" <|
+                \_ ->
+                    let
+                        expected =
+                            Nothing
+
+                        { cache = _, value = actual } =
+                            LRUCache.newCache 2 ""
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.get "a"
+                    in
+                        Expect.equal expected actual
+
+            , test "Multiple evictions work" <|
+                \_ ->
+                    let
+                        expected =
+                            Dict.empty
+                                |> Dict.set "d" 4
+                                |> Dict.set "e" 5
+
+                        actual =
+                            LRUCache.newCache 2 ""
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.put "d" 4
+                                |> LRUCache.put "e" 5
+                                |> LRUCache.toDict
+                    in
+                        Expect.equalDicts expected actual
+
+            , test "Get bumped to the front and changes lru" <|
+                \_ ->
+                    let
+                        expected =
+                            Dict.empty
+                                |> Dict.set "a" 1
+                                |> Dict.set "d" 4
+                                |> Dict.set "e" 5
+
+                        { cache = cache1, value = _} =
+                            LRUCache.newCache 3 ""
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.get "a"
+
+                        actual =
+                            cache1
+                                |> LRUCache.put "d" 4
+                                |> LRUCache.put "e" 5
+                                |> LRUCache.toDict
+                    in
+                        Expect.equalDicts expected actual
+
+            , test "Putting the same thing takes expected space" <|
+                \_ ->
+                    let
+                        expected =
+                            Dict.empty
+                                |> Dict.set "a" 1
+                                |> Dict.set "b" 2
+
+                        actual =
+                            LRUCache.newCache 3 ""
+                                |> LRUCache.put "a" 5
+                                |> LRUCache.put "a" 4
+                                |> LRUCache.put "a" 3
+                                |> LRUCache.put "a" 2
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.toDict
+                    in
+                        Expect.equalDicts expected actual
+
             ]
         ]

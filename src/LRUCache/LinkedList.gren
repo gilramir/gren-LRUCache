@@ -28,10 +28,10 @@ emptyLinkedList zeroVal =
         }
 
 pushFront : comparable -> LinkedList comparable -> LinkedList comparable
-pushFront newItem (LinkedList {firstAndLast, size, nodes, zeroVal} as list) =
+pushFront newItem list =
     let
         -- If a is already in the list then remove it
-        listToUse =
+        (LinkedList {firstAndLast, size, nodes, zeroVal} as listToUse) =
             if has newItem list then
                 (remove newItem list)
             else
