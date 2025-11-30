@@ -51,6 +51,23 @@ suite =
                     in
                         Expect.equal expected actual
 
+            , test "Getting int key works" <|
+                \_ ->
+                    let
+                        expected =
+                            Just 2
+
+                        { cache = _, value = actual } =
+                            LRUCache.newCache 4 0
+                                |> LRUCache.put 10 1
+                                |> LRUCache.put 20 2
+                                |> LRUCache.put 30 3
+                                |> LRUCache.put 40 4
+                                |> LRUCache.put 50 5
+                                |> LRUCache.get 20
+                    in
+                        Expect.equal expected actual
+
             , test "Getting Nothing when key has been evicted" <|
                 \_ ->
                     let
