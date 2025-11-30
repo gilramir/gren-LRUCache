@@ -1,0 +1,82 @@
+module LRUCache exposing (Cache, newCache, get, put, remove, toDict)
+
+import Dict exposing (Dict)
+
+import LRUCache.LinkedList as LinkedList exposing (LinkedList)
+
+type Cache k v
+    = Cache
+    -- Can we get rid of entries and use the LinkedList?
+        { entries: Dict k v
+        , maxSize : Int
+        , ordering: LinkedList k
+        }
+
+-- Give the size and the zero value for empty records with the key type
+newCache: Int -> k -> Cache k v
+newCache maxSize zeroVal =
+    Cache
+        { entries = Dict.empty
+        , maxSize = maxSize
+        , ordering = LinkedList.emptyLinkedList zeroVal
+        }
+
+{-| Get the dict that represents this cache.
+-}
+toDict : Cache comparable v -> Dict comparable v
+toDict (Cache { entries }) =
+    entries
+
+put: comparable -> v -> Cache comparable v -> Cache comparable v
+put key value (Cache {entries, maxSize, ordering} as cache) =
+    let
+        updatedEntries =
+            Dict.set key value entries
+        updatedOrdering =
+            LinkedList.pushFront key ordering
+    in
+        if (Dict.count updatedEntries <= maxSize) then
+            Cache
+            { entries = updatedEntries
+            , maxSize = maxSize
+            , ordering = updatedOrdering
+            }
+        else
+            let
+                lruKey = (LinkedList.unsafeLast ordering)
+
+                entriesWithoutLru =
+                    Dict.remove lruKey updatedEntries
+
+                orderingWithoutLru =
+                    LinkedList.remove lruKey updatedOrdering
+            in
+                Cache
+                { entries = entriesWithoutLru
+                , maxSize = maxSize
+                , ordering = orderingWithoutLru
+                }
+
+
+get : comparable -> Cache comparable v -> { cache: Cache comparable v, value: Maybe v }
+get key (Cache {entries, maxSize, ordering} as cache) =
+    when Dict.get key entries is
+        Nothing ->
+            { cache = cache, value = Nothing }
+
+        Just entry ->
+            { cache = Cache
+                { entries = entries
+                , maxSize = maxSize
+                , ordering = LinkedList.pushFront key ordering
+                },
+                value = Just entry
+            }
+
+remove : comparable -> Cache comparable v -> Cache comparable v
+remove key (Cache {entries, maxSize, ordering}) =
+    Cache
+        { ordering = LinkedList.remove key ordering
+        , entries = Dict.remove key entries
+        , maxSize = maxSize
+        }

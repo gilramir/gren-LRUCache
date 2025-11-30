@@ -1,0 +1,18 @@
+module Main exposing (main)
+
+import Expect
+import Test exposing (describe, test)
+import Test.Runner.Node exposing (Program, run)
+
+import Tests exposing (suite)
+
+main : Program
+main =
+    run <| suite
+
+{-
+        describe "All tests"
+            [ test "Failing test" <| \_ ->
+                Expect.equal True False
+            ]
+-}

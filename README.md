@@ -1,3 +1,5 @@
+The basis of this code was this Elm package:
+
 Elm package: http://package.elm-lang.org/packages/naddeoa/quick-cache/latest
 
 A simple, least recently used (LRU) cache with O(1) get, put and remove operations.

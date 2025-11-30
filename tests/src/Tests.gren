@@ -1,0 +1,36 @@
+module Tests exposing (..)
+
+import Expect exposing (Expectation)
+import Test exposing (..)
+import Dict
+
+import LRUCache exposing (Cache)
+
+
+suite : Test
+suite =
+    describe "Cache tests"
+        [ describe "Basics"
+            -- Nest as many descriptions as you like.
+            [ test "Putting and eviction works" <|
+                \_ ->
+                    let
+                        expected =
+                            Dict.empty
+                                |> Dict.set "b" 2
+                                |> Dict.set "c" 3
+                                |> Dict.set "d" 4
+                                |> Dict.set "e" 5
+
+                        actual =
+                            LRUCache.newCache 4 ""
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.put "d" 4
+                                |> LRUCache.put "e" 5
+                                |> LRUCache.toDict
+                    in
+                        Expect.equalDicts expected actual
+            ]
+        ]

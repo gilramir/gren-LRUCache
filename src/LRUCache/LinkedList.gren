@@ -1,0 +1,218 @@
+module LRUCache.LinkedList exposing (..)
+
+import Dict exposing (Dict)
+
+type LinkedList t =
+    LinkedList
+    { firstAndLast : Maybe { firstItem: t, lastItem: t }
+    , size : Int
+    , nodes : Dict t (Link t)
+    , zeroVal: t
+    }
+
+
+type Link t =
+    Link
+    { previous : Maybe t
+    , next : Maybe t
+    , value : t
+    }
+
+emptyLinkedList : t ->  LinkedList t
+emptyLinkedList zeroVal =
+    LinkedList
+        { firstAndLast = Nothing
+        , size = 0
+        , nodes = Dict.empty
+        , zeroVal = zeroVal
+        }
+
+pushFront : comparable -> LinkedList comparable -> LinkedList comparable
+pushFront newItem (LinkedList {firstAndLast, size, nodes, zeroVal} as list) =
+    let
+        -- If a is already in the list then remove it
+        listToUse =
+            if has newItem list then
+                (remove newItem list)
+            else
+                list
+    in
+        when firstAndLast is
+            Nothing ->
+                -- Nothing is in the list at all. Set this new item to the head, last and
+                -- add an entry for it in the nodes map to denote it has no siblings.
+                LinkedList
+                    { firstAndLast = Just { firstItem = newItem, lastItem = newItem }
+                    , size = size + 1
+                    , nodes = Dict.set newItem (Link
+                        { previous = Nothing
+                        , next = Nothing
+                        , value = newItem }) nodes
+                    , zeroVal = zeroVal
+                    }
+
+            Just { firstItem = firstItem, lastItem = lastItem } ->
+                let
+                    originalFirstLink =
+                        unsafeGetLink firstItem listToUse
+
+                    newLink =
+                        (Link
+                            { previous = Nothing
+                            , next = Just (linkValue originalFirstLink)
+                            , value = newItem })
+                in
+                    LinkedList
+                        { firstAndLast = Just { firstItem = newItem, lastItem = lastItem }
+                        , size = size + 1
+                        , nodes =
+                            nodes
+                                |> Dict.set newItem newLink
+                                |> Dict.set (linkValue originalFirstLink)
+                                (Link
+                                    { previous = Just (linkValue newLink)
+                                    , next = linkNext originalFirstLink
+                                    , value = newItem })
+                        , zeroVal = zeroVal
+                        }
+
+unsafeGetLink : comparable -> LinkedList comparable -> Link comparable
+unsafeGetLink item (LinkedList {nodes, zeroVal}) =
+    Maybe.withDefault (emptyLink zeroVal) <| Dict.get item nodes
+
+emptyLink : comparable -> Link comparable
+emptyLink zeroVal =
+    Link { previous = Nothing, next = Nothing, value = zeroVal }
+
+
+linkValue : Link comparable -> comparable
+linkValue (Link { value }) =
+    value
+
+
+linkNext : Link comparable -> Maybe comparable
+linkNext (Link {next})  =
+    next
+
+linkPrevious : Link comparable -> Maybe comparable
+linkPrevious (Link {previous}) =
+    previous
+
+
+has : comparable -> LinkedList comparable -> Bool
+has item (LinkedList {nodes}) =
+    Dict.member item nodes
+
+remove : comparable -> LinkedList comparable -> LinkedList comparable
+remove item (LinkedList {firstAndLast, nodes, size, zeroVal} as list) =
+    when firstAndLast is
+        Nothing ->
+            list
+
+        Just { firstItem = firstItem, lastItem = lastItem } ->
+            let
+                linkMaybe =
+                    Dict.get item nodes
+            in
+                when linkMaybe is
+                    Nothing ->
+                        -- That key wasn't even in this list
+                        list
+
+                    Just link ->
+                        -- The key is in the list
+                        when linkPrevious link is
+                            Nothing ->
+                                -- If there was no previous link to this item...
+                                when linkNext link is
+                                    Nothing ->
+                                        -- AND no next link, it must have been the only thing in the list
+                                        LinkedList
+                                            { firstAndLast = Nothing
+                                            , size = 0
+                                            , nodes = Dict.empty
+                                            , zeroVal = zeroVal
+                                            }
+
+                                    Just nextLinkKey ->
+                                        let
+                                            nextLink =
+                                                unsafeGetLink nextLinkKey list
+                                        in
+                                            -- BUT it has a next, it must have been the head. Leave the last alone, set
+                                            -- that next link to the new head.
+                                            LinkedList
+                                                { firstAndLast = Just { firstItem = nextLinkKey, lastItem = lastItem }
+                                                , size = size - 1
+                                                , nodes =
+                                                    nodes
+                                                        |> Dict.remove item
+                                                        |> Dict.set nextLinkKey (Link
+                                                            { previous = Nothing
+                                                            , next = linkNext nextLink
+                                                            , value = linkValue nextLink
+                                                            })
+                                                , zeroVal = zeroVal
+                                                }
+
+                            Just previousLinkKey ->
+                                -- If there is a previous link...
+                                when linkNext link is
+                                    Nothing ->
+                                        -- AND there is no next, then this must be the last item
+                                        let
+                                            previousLink =
+                                                unsafeGetLink previousLinkKey list
+                                        in
+                                            LinkedList
+                                                { firstAndLast = Just { firstItem = firstItem, lastItem = previousLinkKey }
+                                                , size = size - 1
+                                                , nodes =
+                                                    nodes
+                                                        |> Dict.set previousLinkKey (Link
+                                                            { previous = linkPrevious previousLink
+                                                            , next = Nothing
+                                                            , value = previousLinkKey
+                                                            })
+                                                        |> Dict.remove item
+                                                , zeroVal = zeroVal
+                                                }
+
+                                    Just nextLinkKey ->
+                                        let
+                                            nextLink =
+                                                unsafeGetLink nextLinkKey list
+
+                                            previousLink =
+                                                unsafeGetLink previousLinkKey list
+                                        in
+                                            -- AND there is a next, then this item has two siblings and they need to point to each other.
+                                            -- It must not have been the first or last item
+                                            LinkedList
+                                                { firstAndLast = Just { firstItem = firstItem, lastItem = lastItem }
+                                                , size = size - 1
+                                                , nodes =
+                                                    nodes
+                                                        |> Dict.set previousLinkKey (Link
+                                                            { previous = linkPrevious previousLink
+                                                            , next = Just nextLinkKey
+                                                            , value = previousLinkKey
+                                                            })
+                                                        |> Dict.set nextLinkKey (Link
+                                                            { previous = Just previousLinkKey
+                                                            , next = linkNext nextLink
+                                                            , value = nextLinkKey
+                                                            })
+                                                        |> Dict.remove item
+                                                , zeroVal = zeroVal
+                                                }
+
+unsafeLast : LinkedList comparable -> comparable
+unsafeLast (LinkedList {firstAndLast, zeroVal}) =
+    when firstAndLast is
+        Nothing ->
+            zeroVal
+
+        Just { firstItem = _ , lastItem = lastItem } ->
+            lastItem
+
