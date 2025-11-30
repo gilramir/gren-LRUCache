@@ -4,79 +4,71 @@ import Dict exposing (Dict)
 
 import LRUCache.LinkedList as LinkedList exposing (LinkedList)
 
-type Cache k v
+type Cache comparable v
     = Cache
-    -- Can we get rid of entries and use the LinkedList?
-        { entries: Dict k v
-        , maxSize : Int
-        , ordering: LinkedList k
+        { maxSize : Int
+        , ordering: LinkedList comparable v
         }
 
 -- Give the size and the zero value for empty records with the key type
-newCache: Int -> k -> Cache k v
-newCache maxSize zeroVal =
+newCache: Int -> comparable -> v -> Cache comparable v
+newCache maxSize zeroVal zeroDictVal =
     Cache
-        { entries = Dict.empty
-        , maxSize = maxSize
-        , ordering = LinkedList.emptyLinkedList zeroVal
+        { maxSize = maxSize
+        , ordering = LinkedList.emptyLinkedList zeroVal zeroDictVal
         }
 
 {-| Get the dict that represents this cache.
 -}
 toDict : Cache comparable v -> Dict comparable v
-toDict (Cache { entries }) =
-    entries
+toDict (Cache { ordering }) =
+    LinkedList.toDict ordering
 
 put: comparable -> v -> Cache comparable v -> Cache comparable v
-put key value (Cache {entries, maxSize, ordering} as cache) =
+put key value (Cache {maxSize, ordering} as cache) =
     let
-        updatedEntries =
-            Dict.set key value entries
         updatedOrdering =
-            LinkedList.pushFront key ordering
+            LinkedList.pushFront key value ordering
+        (LinkedList.LinkedList { nodes }) = updatedOrdering
     in
-        if (Dict.count updatedEntries <= maxSize) then
+        if (Dict.count nodes <= maxSize) then
             Cache
-            { entries = updatedEntries
-            , maxSize = maxSize
+            { maxSize = maxSize
             , ordering = updatedOrdering
             }
         else
             let
                 lruKey = (LinkedList.unsafeLast ordering)
 
-                entriesWithoutLru =
-                    Dict.remove lruKey updatedEntries
-
                 orderingWithoutLru =
                     LinkedList.remove lruKey updatedOrdering
             in
                 Cache
-                { entries = entriesWithoutLru
-                , maxSize = maxSize
+                { maxSize = maxSize
                 , ordering = orderingWithoutLru
                 }
 
 
 get : comparable -> Cache comparable v -> { cache: Cache comparable v, value: Maybe v }
-get key (Cache {entries, maxSize, ordering} as cache) =
-    when Dict.get key entries is
-        Nothing ->
-            { cache = cache, value = Nothing }
+get key (Cache { maxSize, ordering} as cache) =
+    let
+        (LinkedList.LinkedList { nodes }) = ordering
+    in
+        when Dict.get key nodes is
+            Nothing ->
+                { cache = cache, value = Nothing }
 
-        Just entry ->
-            { cache = Cache
-                { entries = entries
-                , maxSize = maxSize
-                , ordering = LinkedList.pushFront key ordering
-                },
-                value = Just entry
-            }
+            Just (LinkedList.Link {dictValue}) ->
+                { cache = Cache
+                    { maxSize = maxSize
+                    , ordering = LinkedList.pushFront key dictValue ordering
+                    },
+                    value = Just dictValue
+                }
 
 remove : comparable -> Cache comparable v -> Cache comparable v
-remove key (Cache {entries, maxSize, ordering}) =
+remove key (Cache {maxSize, ordering}) =
     Cache
         { ordering = LinkedList.remove key ordering
-        , entries = Dict.remove key entries
         , maxSize = maxSize
         }

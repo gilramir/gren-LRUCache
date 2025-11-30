@@ -4,6 +4,7 @@ import Expect exposing (Expectation)
 import Test exposing (..)
 import Dict
 
+import Debug exposing (log)
 
 import LRUCache
 
@@ -13,7 +14,29 @@ suite =
     describe "Cache tests"
         [ describe "Basics"
 
-            [ test "Putting and eviction works" <|
+            [ test "Putting without eviction works" <|
+                \_ ->
+                    let
+                        expected =
+                            Dict.empty
+                                |> Dict.set "a" 1
+                                |> Dict.set "b" 2
+                                |> Dict.set "c" 3
+                                |> Dict.set "d" 4
+                                |> Dict.set "e" 5
+
+                        actual =
+                            LRUCache.newCache 10 "" 0
+                                |> LRUCache.put "a" 1
+                                |> LRUCache.put "b" 2
+                                |> LRUCache.put "c" 3
+                                |> LRUCache.put "d" 4
+                                |> LRUCache.put "e" 5
+                                |> LRUCache.toDict
+                    in
+                        Expect.equalDicts expected actual
+
+            , test "Putting and eviction works" <|
                 \_ ->
                     let
                         expected =
@@ -24,7 +47,7 @@ suite =
                                 |> Dict.set "e" 5
 
                         actual =
-                            LRUCache.newCache 4 ""
+                            LRUCache.newCache 4 "" 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -41,7 +64,7 @@ suite =
                             Just 2
 
                         { cache = _, value = actual } =
-                            LRUCache.newCache 4 ""
+                            LRUCache.newCache 4 "" 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -58,7 +81,7 @@ suite =
                             Just 2
 
                         { cache = _, value = actual } =
-                            LRUCache.newCache 4 0
+                            LRUCache.newCache 4 0 0
                                 |> LRUCache.put 10 1
                                 |> LRUCache.put 20 2
                                 |> LRUCache.put 30 3
@@ -75,7 +98,7 @@ suite =
                             Nothing
 
                         { cache = _, value = actual } =
-                            LRUCache.newCache 2 ""
+                            LRUCache.newCache 2 "" 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -92,7 +115,7 @@ suite =
                                 |> Dict.set "e" 5
 
                         actual =
-                            LRUCache.newCache 2 ""
+                            LRUCache.newCache 2 "" 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -112,7 +135,7 @@ suite =
                                 |> Dict.set "e" 5
 
                         { cache = cache1, value = _} =
-                            LRUCache.newCache 3 ""
+                            LRUCache.newCache 3 "" 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -135,7 +158,7 @@ suite =
                                 |> Dict.set "b" 2
 
                         actual =
-                            LRUCache.newCache 3 ""
+                            LRUCache.newCache 3 "" 0
                                 |> LRUCache.put "a" 5
                                 |> LRUCache.put "a" 4
                                 |> LRUCache.put "a" 3
@@ -155,7 +178,7 @@ suite =
                                 |> Dict.set "c" 3
 
                         actual =
-                            LRUCache.newCache 3 ""
+                            LRUCache.newCache 3 "" 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -172,7 +195,7 @@ suite =
                                 |> Dict.set "a" 1
 
                         actual =
-                            LRUCache.newCache 3 ""
+                            LRUCache.newCache 3 "" 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -193,7 +216,7 @@ suite =
                                 |> Dict.set "d" 4
 
                         actual =
-                            LRUCache.newCache 2 ""
+                            LRUCache.newCache 2 "" 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -202,5 +225,6 @@ suite =
                                 |> LRUCache.toDict
                     in
                         Expect.equalDicts expected actual
+
             ]
         ]
