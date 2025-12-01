@@ -26,5 +26,6 @@ The basis of this code was this excellent Elm package:
 
 http://package.elm-lang.org/packages/naddeoa/quick-cache/latest
 
-Besides the conversion to Gren, the code was also modified to remove
-one of the internal Dicts, leaving just one Dict for each LRUCache.
+Besides the conversion to Gren, the code was also modified to
+allow more than just Stings to be keys. Also, one of the Dicts
+used internally was removed, leaving just one Dict for each LRUCache.
