@@ -10,15 +10,16 @@ type LRUCache comparable v
         , ordering: LinkedList comparable v
         }
 
--- Give the size and the zero value for empty records with the key type
-newLRUCache: Int -> v -> LRUCache comparable v
-newLRUCache maxSize zeroDictVal =
+{-| Create the LRUCache, setting the maximum size.
+-}
+newLRUCache: Int -> LRUCache comparable v
+newLRUCache maxSize =
     LRUCache
         { maxSize = maxSize
-        , ordering = LinkedList.emptyLinkedList zeroDictVal
+        , ordering = LinkedList.emptyLinkedList
         }
 
-{-| Get the dict that represents this cache.
+{-| Get a dict that represents this cache.
 -}
 toDict : LRUCache comparable v -> Dict comparable v
 toDict (LRUCache { ordering }) =
@@ -38,17 +39,14 @@ put key value (LRUCache {maxSize, ordering} as cache) =
             }
         else
             let
-                --lruKey = (LinkedList.unsafeLast ordering)
                 maybeLruKey = LinkedList.getLastKey ordering
             in
                 when maybeLruKey is
-                    -- This is impossible, because we would
-                    -- have hit this when the node count <= maxSize
                     Nothing ->
-                            LRUCache
-                            { maxSize = maxSize
-                            , ordering = updatedOrdering
-                            }
+                        -- This is impossible, because we would
+                        -- have hit this when the node count <= maxSize
+                        cache
+
                     Just lruKey ->
                         let
                             orderingWithoutLru =
