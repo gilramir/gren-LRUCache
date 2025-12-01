@@ -23,7 +23,7 @@ suite =
                                 |> Dict.set "e" 5
 
                         actual =
-                            LRUCache.newLRUCache 10 "" 0
+                            LRUCache.newLRUCache 10 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -44,7 +44,7 @@ suite =
                                 |> Dict.set "e" 5
 
                         actual =
-                            LRUCache.newLRUCache 4 "" 0
+                            LRUCache.newLRUCache 4 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -61,7 +61,7 @@ suite =
                             Just 2
 
                         { cache = _, value = actual } =
-                            LRUCache.newLRUCache 4 "" 0
+                            LRUCache.newLRUCache 4 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -78,7 +78,7 @@ suite =
                             Just 2
 
                         { cache = _, value = actual } =
-                            LRUCache.newLRUCache 4 0 0
+                            LRUCache.newLRUCache 4 0
                                 |> LRUCache.put 10 1
                                 |> LRUCache.put 20 2
                                 |> LRUCache.put 30 3
@@ -95,7 +95,7 @@ suite =
                             Nothing
 
                         { cache = _, value = actual } =
-                            LRUCache.newLRUCache 2 "" 0
+                            LRUCache.newLRUCache 2 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -112,7 +112,7 @@ suite =
                                 |> Dict.set "e" 5
 
                         actual =
-                            LRUCache.newLRUCache 2 "" 0
+                            LRUCache.newLRUCache 2 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -132,7 +132,7 @@ suite =
                                 |> Dict.set "e" 5
 
                         { cache = cache1, value = _} =
-                            LRUCache.newLRUCache 3 "" 0
+                            LRUCache.newLRUCache 3 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -155,7 +155,7 @@ suite =
                                 |> Dict.set "b" 2
 
                         actual =
-                            LRUCache.newLRUCache 3 "" 0
+                            LRUCache.newLRUCache 3 0
                                 |> LRUCache.put "a" 5
                                 |> LRUCache.put "a" 4
                                 |> LRUCache.put "a" 3
@@ -175,7 +175,7 @@ suite =
                                 |> Dict.set "c" 3
 
                         actual =
-                            LRUCache.newLRUCache 3 "" 0
+                            LRUCache.newLRUCache 3 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -192,7 +192,7 @@ suite =
                                 |> Dict.set "a" 1
 
                         actual =
-                            LRUCache.newLRUCache 3 "" 0
+                            LRUCache.newLRUCache 3 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
@@ -213,7 +213,7 @@ suite =
                                 |> Dict.set "d" 4
 
                         actual =
-                            LRUCache.newLRUCache 2 "" 0
+                            LRUCache.newLRUCache 2 0
                                 |> LRUCache.put "a" 1
                                 |> LRUCache.put "b" 2
                                 |> LRUCache.put "c" 3
